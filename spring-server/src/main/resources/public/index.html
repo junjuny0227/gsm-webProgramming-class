@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>학생 ERP System</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+        table {
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        input {
+            width: 300px;
+        }
+
+        .error {
+            color: red;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+<h1>학생 ERP System</h1>
+
+<div>
+    <input type="text" id="searchInput" placeholder="검색어를 입력하세요 (예: 전체 학생목록 알려줘)">
+    <button onclick="searchStudents()">검색</button>
+</div>
+<hr>
+<div id="search-results"></div>
+<script>
+    const searchStudents = async () => {
+        const resultsDiv = document.getElementById('search-results');
+        const searchInput = document.getElementById('searchInput');
+        const query = searchInput.value.trim();
+
+        if (!query) {
+            resultsDiv.innerHTML = '<p class="error">검색어를 입력해주세요.</p>';
+            return;
+        }
+
+        try {
+            resultsDiv.innerHTML = '<p>검색 중...</p>';
+
+            const { data } = await axios.get('http://localhost:8080/chat', {
+                params: { req: query }
+            });
+
+            if (!data?.length) {
+                resultsDiv.innerHTML = '<p>검색 결과가 없습니다.</p>';
+                return;
+            }
+
+            const table = createStudentTable(data);
+            resultsDiv.innerHTML = '';
+            resultsDiv.appendChild(table);
+
+        } catch (error) {
+            console.error('Error:', error);
+            const errorMessage = error.response?.data
+                ? `서버 오류 (${error.response.status}): ${error.response.data}`
+                : `네트워크 오류: ${error.message}`;
+            resultsDiv.innerHTML = `<p class="error">${errorMessage}</p>`;
+        }
+    };
+
+    const createStudentTable = (students) => {
+        const table = document.createElement('table');
+        table.innerHTML = `
+            <tr>
+                <th>이름</th>
+                <th>학교</th>
+                <th>이메일</th>
+            </tr>
+        `;
+
+        students.forEach(student => {
+            const { name, school, email } = student;
+            if (!name || !school || !email) {
+                console.warn('불완전한 학생 데이터:', student);
+                return;
+            }
+
+            const row = table.insertRow();
+            [name, school, email].forEach((value, index) => {
+                row.insertCell(index).textContent = value;
+            });
+        });
+
+        return table;
+    };
+
+    // Enter 키로도 검색 가능하도록 추가
+    document.getElementById('searchInput').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') searchStudents();
+    });
+</script>
+</body>
+</html>

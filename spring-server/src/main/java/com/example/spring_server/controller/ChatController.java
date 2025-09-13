@@ -1,8 +1,12 @@
 package com.example.spring_server.controller;
 
+import com.example.spring_server.entity.Student;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 @RestController
 public class ChatController {
@@ -12,14 +16,19 @@ public class ChatController {
         this.chatClient = chatClient.build();
     }
 
-    @GetMapping("/chat")
-    public String chat(String req) {
-        String systemPrompt = "Always respond in Korean.";
-//        String userPrompt = "I am attending Gwangju Software Meister High School and majoring in front end. {req}";
+    String systemPrompt = """
+            Always respond in Korean.
+            당신이 HR 도우미입니다.
+            학생 목록에 근거하여 답변하세요.
+            목록에 없으면 "목록에 없는 학생입니다."라고 답변하세요.
+            JSON 형식으로 응답하세요.
+            """;
 
+    @GetMapping("/chat")
+    public List<Student> chat(String req) {
         String students = """
-                이름: 전준연 | 학교: 광주소프트웨어마이스터고등학교
-                이름: 신희성 | 학교: 부산소프트웨어마이스터고등학교
+                이름: 전준연 | 학교: 광주소프트웨어마이스터고등학교 | 이메일: s24070@gsm.hs.kr
+                이름: 신희성 | 학교: 부산소프트웨어마이스터고등학교 | 이메일: s23052@bssm.hs.kr
                 """;
 
         String userPrompt = """
@@ -33,8 +42,7 @@ public class ChatController {
                 .system(systemPrompt)
                 .user(userPrompt)
                 .call()
-                .content();
+                .entity(new ParameterizedTypeReference<List<Student>>() {
+                });
     }
 }
-
-//"I am attending Gwangju Software Meister High School and majoring in front end. {req}"
