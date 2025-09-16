@@ -29,6 +29,7 @@ public class ChatController {
         String students = """
                 이름: 전준연 | 학교: 광주소프트웨어마이스터고등학교 | 이메일: s24070@gsm.hs.kr
                 이름: 신희성 | 학교: 부산소프트웨어마이스터고등학교 | 이메일: s23052@bssm.hs.kr
+                이름: 홍길동 | 학교: 한양소프트웨어마이스터고등학교 | 이메일: s25012@hsm.hs.kr
                 """;
 
         String userPrompt = """
