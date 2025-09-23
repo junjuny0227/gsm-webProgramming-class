@@ -22,14 +22,10 @@ public class HotelController {
         this.vectorStore = vectorStore;
         this.chatClient = chatClient.build();
     }
-    // http://localhost:8080/api/hotel
-    // POST : { "question" : "질문" }
 
     @PostMapping("/hotel")
     public String hotel(@RequestBody Map<String, String> question) {
         String ask = question.get("question");
-        // 유사도 검색을 수행후에 결과를 가져오는 부분
-        // ollama pull nomic-embed-text:latest
         List<Document> results = vectorStore.similaritySearch(
                 SearchRequest.builder()
                         .query(ask)
