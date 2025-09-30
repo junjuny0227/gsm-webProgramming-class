@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useForm } from 'react-hook-form';
 import { Send, Bot, User, Hotel } from 'lucide-react';
 import axios from 'axios';
 
@@ -9,11 +10,22 @@ interface Message {
   timestamp: Date;
 }
 
+interface FormData {
+  message: string;
+}
+
 const App = () => {
   const [messages, setMessages] = useState<Message[]>([]);
-  const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const { register, handleSubmit, reset, watch } = useForm<FormData>({
+    defaultValues: {
+      message: '',
+    },
+  });
+
+  const watchedMessage = watch('message');
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -23,19 +35,19 @@ const App = () => {
     scrollToBottom();
   }, [messages]);
 
-  const sendMessage = async () => {
-    if (!inputValue.trim()) return;
+  const sendMessage = async (data: FormData) => {
+    if (!data.message.trim()) return;
 
     const userMessage: Message = {
       id: Date.now(),
-      text: inputValue,
+      text: data.message,
       isUser: true,
       timestamp: new Date(),
     };
 
     setMessages((prev) => [...prev, userMessage]);
-    const currentQuestion = inputValue;
-    setInputValue('');
+    const currentQuestion = data.message;
+    reset();
     setIsLoading(true);
 
     try {
@@ -67,7 +79,7 @@ const App = () => {
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      sendMessage();
+      handleSubmit(sendMessage)();
     }
   };
 
@@ -202,26 +214,27 @@ const App = () => {
 
           {/* 입력 영역 */}
           <div className="relative">
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-1">
-              <div className="flex items-center space-x-3">
-                <input
-                  type="text"
-                  value={inputValue}
-                  onChange={(e) => setInputValue(e.target.value)}
-                  onKeyPress={handleKeyPress}
-                  placeholder="Type your message..."
-                  className="flex-1 px-5 py-3 bg-transparent text-slate-800 placeholder-slate-500 focus:outline-none font-light"
-                  disabled={isLoading}
-                />
-                <button
-                  onClick={sendMessage}
-                  disabled={isLoading || !inputValue.trim()}
-                  className="px-5 py-3 bg-slate-900 text-white rounded-xl hover:bg-slate-800 disabled:bg-slate-400 disabled:cursor-not-allowed font-light shadow-sm transform hover:scale-105 transition-all duration-200 flex items-center space-x-2"
-                >
-                  <Send className="w-4 h-4" />
-                </button>
+            <form onSubmit={handleSubmit(sendMessage)}>
+              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-1">
+                <div className="flex items-center space-x-3">
+                  <input
+                    type="text"
+                    {...register('message')}
+                    onKeyPress={handleKeyPress}
+                    placeholder="Type your message..."
+                    className="flex-1 px-5 py-3 bg-transparent text-slate-800 placeholder-slate-500 focus:outline-none font-light"
+                    disabled={isLoading}
+                  />
+                  <button
+                    type="submit"
+                    disabled={isLoading || !watchedMessage?.trim()}
+                    className="px-5 py-3 bg-slate-900 text-white rounded-xl hover:bg-slate-800 disabled:bg-slate-400 disabled:cursor-not-allowed font-light shadow-sm transform hover:scale-105 transition-all duration-200 flex items-center space-x-2"
+                  >
+                    <Send className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
-            </div>
+            </form>
           </div>
         </div>
       </div>
